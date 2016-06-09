@@ -120,11 +120,13 @@ Create 3 variables like this:
 
 a. PORT = 80
 
-b. CONSUMERKEY = <your consumer key>
+b. CONSUMERKEY = &lt;your consumer key&gt;
 
-c. CONSUMERSECRET = <your consumer secret>
+c. CONSUMERSECRET = &lt;your consumer secret&gt;
 
 Next restart the server.
+
+
 
 
 --------
