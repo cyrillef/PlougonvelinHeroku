@@ -22,7 +22,7 @@ http://plougonvelin.herokuapp.com/
 
 This sample uses the Autodesk Forge Viewer to display my house, and has a Forge Viewer IoT Extension to
 connect to my house BeagleBone Black IoT implementation via a secured socket.io connection.
-However, the security layers is not demonstrated in this repo.
+However, the security layers is implemented on the BeagleBone Black device.
 
 ## Dependencies
 
