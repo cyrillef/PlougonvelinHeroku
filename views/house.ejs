@@ -4,14 +4,15 @@
     <!--script src="https://www.google.com/jsapi"></script-->
     <script src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['gauge']}]}"></script>
 
-    <link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/style.css">
-    <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.js"></script>
-    <script src="/IoTTool.js"></script>
+	<!-- Autodesk Forge Viewer -->
+	<link rel="stylesheet" href="https://autodeskviewer.com/viewers/2.8/style.min.css" />
+	<script src="https://autodeskviewer.com/viewers/2.8/three.min.js"></script>
+	<script src="https://autodeskviewer.com/viewers/2.8/viewer3D.min.js"></script>
+	<script src="/IoTTool.js"></script>
 
     <link rel="stylesheet" href="/radial-menu.css">
     <script src="/radial-menu.js"></script>
 
-    <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/three.js"></script>
     <script src="/CSS3DRenderer.js"></script>
     <script src="/OBJLoader.js"></script>
 
@@ -149,7 +150,7 @@
                         //    texture.needsUpdate =true ;
                         //}) ;
 
-                        var loader =new THREE.OBJLoader (manager) ;
+                        /*var loader =new THREE.OBJLoader (manager) ;
                         loader.load ('/camera.obj', function (object) {
                             //    object.traverse (function (child) {
                             //        if ( child instanceof THREE.Mesh ) {
@@ -166,7 +167,7 @@
                             },
                             function (xhr) { if ( xhr.lengthComputable ) {} },
                             function (xhr) {}
-                        ) ;
+                        ) ;*/
 	                }) ;
 
 	            },

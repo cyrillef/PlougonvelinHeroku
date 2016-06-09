@@ -341,7 +341,8 @@ Autodesk.Viewing.Extensions.IoTTool =function (viewer, IoTExtension) {
     this.onItemSelected =function (evt) {
         var self =this ;
 
-        console.log (evt.dbIdArray [0]) ;
+        if ( evt.dbIdArray && evt.dbIdArray.length )
+            console.log (evt.dbIdArray [0]) ;
 
         //var a =viewer.impl.getRenderProxy(viewer.model, evt.fragIdsArray [0]) ;
         //a.geometry.computeBoundingBox () ;
