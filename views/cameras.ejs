@@ -1,0 +1,44 @@
+
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <div class="row">
+	    <div class="col-md-12">
+		    <h3>Camera 1 - South View - FI9903P</h3>
+		    <a href="https://www.myfoscam.com/user/login" target="_FI9903P">Camera 1 - FI9903P - South View</a>
+		    login: cyrillef@free.fr password: Socket5
+		    <br />
+		    <a href="http://ic8879.myfoscam.org:88" target="_FI9903P">Camera 1 - FI9903P - South View (direct link)</a>
+		    login: adn paswword: Socket5
+	    </div>
+    </div>
+
+    <canvas id="cam1" />
+
+    <script>
+        //var client, player ;
+        $(document).ready (function () {
+//            var client = new Websocket ('ws://localhost:8002');
+//            var player = new jsmpeg (client, {
+//                'canvas': $('#cam1') [0],
+//                'seekable': false,
+//                'onload': function (player) {
+//                    console.log ('Loaded player ', player) ;
+//                }
+//            }) ;
+//
+//            player.play () ;
+
+            // If you don't use 'autoplay' and don't explicitly call .play(), you can get individual
+            // video frames (a canvas element) like so:
+            //var frame =null ;
+            //while ( (frame =player.nextFrame ()) ) {
+            //    someOtherCanvasContext.drawImage (frame, 0, 0) ;
+            //}
+        }) ;
+    </script>
+
+    <%- include footer.ejs %>
+</body>
+</html>

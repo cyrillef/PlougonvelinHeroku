@@ -1,0 +1,20 @@
+[
+	{
+		"type": "shutter",
+		"open": "P8_43",
+		"close": "P8_39",
+		"name": "Sud"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_46",
+		"close": "P8_45",
+		"name": "Ouest"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_42",
+		"close": "P8_44",
+		"name": "Nord"
+	}
+]

@@ -1,0 +1,143 @@
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1>par étages</h1>
+        </div>
+    </div>
+
+    <% for ( var floor in def.floors () ) {
+        var floorid =floor.replace (/\W/g, '') ;
+    %>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> <%= floor %></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">&nbsp;</div>
+                            </div>
+                        </div>
+                        <button id="<%= floorid %>-shutter-open" type="button" class="btn btn-primary btn-lg btn-success">Ouvrir</button>
+                        <button id="<%= floorid %>-shutter-half" type="button" class="btn btn-primary btn-lg btn-warning">a demi</button>
+                        <button id="<%= floorid %>-shutter-close" type="button" class="btn btn-primary btn-lg btn-danger">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    <% } %>
+
+    <script>
+        var socket, floors =<%- JSON.stringify (def.floors ()) %> ;
+
+        $(document).ready (function () {
+            // Using AJAX
+            //$ ('button[id*=-shutter-]').click (function (evt) {
+            //    var button =$(evt.toElement) ;
+            //    var ids =button.attr ('id').split ('-') ;
+            //    $.get ('/floor/' + ids [0] + '/' + ids [ids.length - 1], function (data, status) {
+            //        console.log (data) ;
+            //    }).fail (function (data) {
+            //        console.log (data) ;
+            //    }) ;
+            //}) ;
+
+            // Socket.io client
+            $('button[id*=-shutter-]').click (function (evt) {
+                var button =$(evt.target) ;
+                var ids =button.attr ('id').split ('-') ;
+
+                var data ={
+                    floorid: ids [0],
+                    cmd: ids [ids.length - 1]
+                } ;
+                socket.emit ('floorCentral', data) ;
+            }) ;
+
+            // Socket.io client
+            socket =io () ;
+
+            socket.on ('connect', function () {
+                socket.emit ('bbbStatus', null) ;
+            }) ;
+
+            socket.on ('disconnect', function () {
+                bbb =false ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('refresh', function (data) {
+            }) ;
+
+            socket.on ('bbbOn', function (data) {
+                bbb =true ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('bbbOff', function (data) {
+                bbb =false ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('roomShutterCommand', function (data) {
+                console.log ('roomShutterCommand') ;
+                lockUnlockButtons (data, true) ;
+            }) ;
+
+            socket.on ('roomCentral', function (data) {
+                console.log ('roomCentral') ;
+                lockUnlockButtons (data, true) ;
+            }) ;
+
+            socket.on ('floorCentral', function (data) {
+                console.log ('floorCentral') ;
+                lockFloorButtons (data, true) ;
+            }) ;
+
+            socket.on ('roomShutterCommandCompleted', function (data) {
+                console.log ('roomShutterCommandCompleted') ;
+                lockUnlockButtons (data, false) ;
+            }) ;
+
+            socket.on ('roomCentralCompleted', function (data) {
+                console.log ('roomCentralCompleted') ;
+                lockUnlockButtons (data, false) ;
+            }) ;
+
+            socket.on ('floorCentralCompleted', function (data) {
+                console.log ('floorCentralCompleted') ;
+                lockFloorButtons (data, false) ;
+            }) ;
+
+            function lockUnlockButtons (data, lock) {
+                for ( var floor in floors ) {
+                    var floorid =floor.replace (/\W/g, '') ;
+                    for ( var i =0 ; i < floors [floor].length ; i++ ) {
+                        var roomid =floors [floor] [i].replace (/\W/g, '') ;
+                        if ( roomid === data.roomid ) {
+                            var id =floorid + '-shutter-' ;
+                            var ll =$('button').filter (function () { return (this.id.match (id)) ; }) ;
+                            ll.prop ('disabled', lock) ;
+                        }
+                    }
+                }
+            }
+
+            function lockFloorButtons (data, lock) {
+                var id =data.floorid + '-shutter-' ;
+                $('button[id*=' + id + ']').prop ('disabled', lock) ;
+            }
+        }) ;
+    </script>
+
+    <%- include footer.ejs %>
+</body>
+</html>

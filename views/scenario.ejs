@@ -1,0 +1,52 @@
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1>Scénario</h1>
+        </div>
+    </div>
+
+    <% for ( var name in scenarie ) {
+    %>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> <%= name %></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">&nbsp;</div>
+                            </div>
+                        </div>
+                        <button id="<%= name %>" type="button" class="btn btn-primary btn-lg btn-success">Activer</button>
+                    </div>
+                    <script>
+                        $('#<%= name %>').click (function (evt) {
+                            evt.stopPropagation () ;
+                            $.ajax ({
+                                url: window.location.protocol + '//' + window.location.host + '/scenario/<%= name %>',
+                                type: 'get',
+                                //data: JSON.stringify ({}),
+                                //contentType: 'application/json',
+                                complete: null
+                            }).done (function (data) {
+                            }) ;
+                        }) ;
+                    </script>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+
+        </div>
+    </div>
+    <% } %>
+    <%- include footer.ejs %>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<%- include html.ejs %>
+<body>
+    <%- include header.ejs %>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <h1>par pièces</h1>
+        </div>
+    </div>
+
+    <% for ( var room in def.rooms () ) {
+        var roomid =room.replace (/\W/g, '') ;
+        var cmds =def.rooms () [room] ;
+    %>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> <%= room %></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body">&nbsp;</div>
+                            </div>
+                        </div>
+                        <button id="<%= roomid %>-shutter-open" type="button" class="btn btn-primary btn-lg btn-success">Ouvrir</button>
+                        <button id="<%= roomid %>-shutter-half" type="button" class="btn btn-primary btn-lg btn-warning">a demi</button>
+                        <button id="<%= roomid %>-shutter-close" type="button" class="btn btn-primary btn-lg btn-danger">Fermer</button>
+                    </div>
+
+                    <% for ( var i =0 ; i < cmds.length ; i++ ) {
+                        var nameid =cmds [i].name.replace (/\W/g, '') ;
+                        var prefix =roomid + '-' + nameid ;
+                    %>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-body"><%= cmds [i].name %></div>
+                            </div>
+                        </div>
+                        <button id="<%= prefix %>-shutter-open" type="button" class="btn btn-primary btn-lg btn-success">Ouvrir</button>
+                        <button id="<%= prefix %>-shutter-half" type="button" class="btn btn-primary btn-lg btn-warning">a demi</button>
+                        <button id="<%= prefix %>-shutter-close" type="button" class="btn btn-primary btn-lg btn-danger">Fermer</button>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+
+        </div>
+    </div>
+    <% } %>
+
+    <script>
+        var socket, bbb =false, floors =<%- JSON.stringify (def.floors ()) %> ;
+
+        $(document).ready (function () {
+            // Using AJAX
+            //$('button[id*=-shutter-]').click (function (evt) {
+            //    var button =$(evt.toElement) ;
+            //    var ids =button.attr ('id').split ('-') ;
+            //    var cmd =ids [0] ;
+            //    if ( ids.length >= 4 )
+            //        cmd +='/' + ids [1] ;
+            //    $.get ('/room/' + cmd + '/' + ids [ids.length - 1], function (data, status) {
+            //        console.log (data) ;
+            //    }).fail (function (data) {
+            //        console.log (data) ;
+            //    }) ;
+            //}) ;
+
+            // Using Socket.io
+            $('button[id*=-shutter-]').click (function (evt) {
+                var button =$(evt.target) ;
+                var ids =button.attr ('id').split ('-') ;
+
+                var msg ='roomCentral' ;
+                var data ={
+                    roomid: ids [0],
+                    cmd: ids [ids.length - 1]
+                } ;
+                if ( ids.length >= 4 ) {
+                    msg ='roomShutterCommand' ;
+                    data.nameid =ids [1] ;
+                }
+                socket.emit (msg, data) ;
+            }) ;
+
+            // Socket.io client
+            socket =io () ;
+
+            socket.on ('connect', function () {
+                socket.emit ('bbbStatus', null) ;
+            }) ;
+
+            socket.on ('disconnect', function () {
+                bbb =false ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('refresh', function (data) {
+            }) ;
+
+            socket.on ('bbbOn', function (data) {
+                bbb =true ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('bbbOff', function (data) {
+                bbb =false ;
+                $('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+            }) ;
+
+            socket.on ('roomShutterCommand', function (data) {
+            	console.log ('roomShutterCommand') ;
+                lockUnlockButtons (data, true) ;
+            }) ;
+
+            socket.on ('roomCentral', function (data) {
+                console.log ('roomCentral') ;
+                lockUnlockButtons (data, true) ;
+            }) ;
+
+            socket.on ('floorCentral', function (data) {
+                console.log ('floorCentral') ;
+                lockFloorButtons (data, true) ;
+            }) ;
+
+            socket.on ('roomShutterCommandCompleted', function (data) {
+                console.log ('roomShutterCommandCompleted') ;
+                lockUnlockButtons (data, false) ;
+            }) ;
+
+            socket.on ('roomCentralCompleted', function (data) {
+                console.log ('roomCentralCompleted') ;
+                lockUnlockButtons (data, false) ;
+            }) ;
+
+            socket.on ('floorCentralCompleted', function (data) {
+                console.log ('floorCentralCompleted') ;
+                lockFloorButtons (data, false) ;
+            }) ;
+
+            function lockUnlockButtons (data, lock) {
+                var id =data.roomid + '(-\\w+)*' + '-shutter-' ;
+                if ( data.hasOwnProperty ('nameid') )
+                    id =data.roomid + '(-' + data.nameid + ')*-shutter-' ;
+                // http://stackoverflow.com/questions/3697542/is-there-a-wildcard-class-selector
+                // http://stackoverflow.com/questions/190253/jquery-selector-regular-expressions
+                var ll =$('button').filter (function () { return (this.id.match (id)) ; }) ;
+                ll.prop ('disabled', lock) ;
+            }
+
+            function lockFloorButtons (data, lock) {
+                for ( var floor in floors ) {
+                    var floorid =floor.replace (/\W/g, '') ;
+                    if ( floorid === data.floorid ) {
+                        for ( var i =0 ; i < floors [floor].length ; i++ ) {
+                            var roomid =floors [floor] [i].replace (/\W/g, '') ;
+                            var cmd ={ 'roomid': roomid, 'cmd': data.cmd } ;
+                            lockUnlockButtons (cmd, lock) ;
+                        }
+                    }
+                }
+            }
+
+        }) ;
+    </script>
+
+    <%- include footer.ejs %>
+</body>
+</html>

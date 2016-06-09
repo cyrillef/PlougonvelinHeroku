@@ -1,0 +1,20 @@
+[
+	{
+		"type": "shutter",
+		"open": "P8_28",
+		"close": "P8_27",
+		"name": "Sud"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_30",
+		"close": "P8_29",
+		"name": "Ouest"
+	},
+	{
+		"type": "shutter",
+		"open": "P8_26",
+		"close": "P8_19",
+		"name": "Cuisine"
+	}
+]

@@ -1,0 +1,282 @@
+
+    <!-- script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.js"></script -->
+    <script src="smoothie.js"></script>
+    <!--script src="https://www.google.com/jsapi"></script-->
+    <script src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['gauge']}]}"></script>
+
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/style.css">
+    <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.js"></script>
+    <script src="/IoTTool.js"></script>
+
+    <link rel="stylesheet" href="/radial-menu.css">
+    <script src="/radial-menu.js"></script>
+
+    <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/three.js"></script>
+    <script src="/CSS3DRenderer.js"></script>
+    <script src="/OBJLoader.js"></script>
+
+    <style>
+    div#viewer {
+        height: 600px ;
+        position: relative ;
+    }
+    </style>
+
+    <script>
+        var floors =<%- JSON.stringify (def.floors ()) %> ;
+        var rooms =<%- JSON.stringify (def.rooms ()) %> ;
+        var viewerCameras =<%- JSON.stringify (def.viewer ()) %> ;
+        var sensors =<%- JSON.stringify (def.sensors ()) %> ;
+        var cameras =<%- JSON.stringify (def.cameras ()) %> ;
+    </script>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="viewer"></div>
+	        <!--div id="chart_div" style="width: 400px; height: 220px;">
+		        <button onclick="hh(1,0,0)">x+</button><button onclick="hh(-1,0,0)">x-</button>
+		        <button onclick="hh(0,1,0)">y+</button><button onclick="hh(0,-1,0)">y-</button>
+		        <button onclick="hh(0,0,1)">z+</button><button onclick="hh(0,0,-1)">z-</button>
+		        <script>
+                    var ocamera ;
+                    function cameraOrientation (x, y, z) {
+                        ocamera.rotation.x +=x/10 ;
+                        ocamera.rotation.y +=y/10 ;
+                        ocamera.rotation.z +=z/10 ;
+                        oViewer.impl.invalidate (true) ;
+                    }
+
+			        function sensorOrientation (x, y, z) {
+				        var sensorid = 'c4be8471058b';
+				        sensorid = 'c4be84706d89';
+				        var sensors = oViewer.toolController.getTool('IoT').sensorPanels();
+				        if (sensors [sensorid] !== undefined) {
+					        var t = sensors[sensorid].scene();
+					        var elt =t.children[0] ;
+					        elt.rotation.x +=x/10 ;
+					        elt.rotation.y +=y/10 ;
+					        elt.rotation.z +=z/10 ;
+				        }
+			        }
+
+                    function hh (x, y, z) {
+                        //sensorOrientation (x, y, z) ;
+                        cameraOrientation (x, y, z) ;
+                    }
+		        </script>
+	        </div-->
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <% for ( var cam in def.cameras () ) {
+                var cameraid =cam.replace (/\W/g, '') ;
+            %>
+            <button id="camera-<%= cameraid %>" type="button" class="btn btn-primary btn-lg btn-success">Go Camera <%= cam %> </button>
+            <% } %>
+        </div>
+        <script>
+            $(document).ready (function () {
+                $('button[id*=camera-]').click (function (evt) {
+                    var button =$(evt.target) ;
+                    var id =button.attr ('id').split ('-') [1] ;
+                    var tool =oViewer.toolController.getTool ('IoT') ;
+                    tool.navigate (cameras [id].position, cameras [id].target) ;
+                }) ;
+            }) ;
+        </script>
+    </div>
+
+        <!-- Viewer -->
+	<script>
+	    var oViewer =null, oDocument =null, oViews3D =[], oViews2D =[] ;
+	    $(document).ready (function () {
+	        var options ={ 'document': '<%= urn %>', 'accessToken': '<%= accessToken %>', 'env': 'AutodeskProduction' } ;
+	        //oViewer =new Autodesk.Viewing.Viewer3D ($("#viewer") [0], {}) ; // No toolbar
+	        oViewer =new Autodesk.Viewing.Private.GuiViewer3D ($("#viewer") [0], {}) ; // With toolbar
+	        //oViewer.addEventListener (Autodesk.Viewing.TOOLBAR_CREATED_EVENT, onViewerToolbarCreated) ;
+	        Autodesk.Viewing.Initializer (options, function () {
+	            oViewer.initialize () ;
+	            oViewer.loadExtension ('Autodesk.IoT', null) ;
+		        oViewer.loadExtension ('Autodesk.FirstPerson', null) ;
+
+	            // Let's zoom in and out of the pivot - the screen real estate is fairly limited
+	            // and reverse the zoom direction
+	            //oViewer.navigation.setZoomTowardsPivot (true) ;
+	            //oViewer.navigation.setReverseZoomDirection (true) ;
+
+	            loadDocument (oViewer, options) ;
+	        }) ;
+
+	    }) ;
+
+	    function loadDocument (viewer, options) {
+	        if ( options.document.substring (0, 4) === 'urn:' )
+	            options.document =options.document.substring (4) ;
+
+	        Autodesk.Viewing.Document.load (
+	            'urn:' + options.document, //options.accessToken,
+	            function (doc) { // onLoadCallback
+	                oDocument =doc ;
+	                // Get all the 3D and 2D views (but keep in separate arrays so we can differentiate in the UI)
+	                oViews3D =Autodesk.Viewing.Document.getSubItemsWithProperties (doc.getRootItem (), { 'type': 'geometry', 'role': '3d' }, true) ;
+	                oViews2D =Autodesk.Viewing.Document.getSubItemsWithProperties (doc.getRootItem (), { 'type': 'geometry', 'role': '2d' }, true) ;
+
+	                // Load up first a 3D view by default
+	                if ( oViews3D.length > 0 )
+	                    oViewer.load (doc.getViewablePath (oViews3D [0])) ;
+	                else if ( oViews2D.length > 0 )
+	                    oViewer.load (doc.getViewablePath (oViews2D [0])) ;
+	                else
+	                    return (alert ('ERROR: No 3D or 2D views found in this document!')) ;
+
+	                //var width =$('div#viewer').css ('width') ;
+	                //$('div#viewer').css ('height', '90%') ;
+	                oViewer.resize () ;
+
+	                oViewer.addEventListener ('progress', function (evt) {
+	                    if ( evt.percent >= 100 ) {
+	                        oViewer.removeEventListener ('progress', arguments.callee) ;
+		                    oViewer.setActiveNavigationTool ('IoT') ;
+	                    }
+
+                        var manager =new THREE.LoadingManager () ;
+
+                        // var texture =new THREE.Texture () ;
+                        // var loader =new THREE.ImageLoader (manager) ;
+                        //loader.load ('/texture.jpg', function (image) {
+                        //    texture.image =image ;
+                        //    texture.needsUpdate =true ;
+                        //}) ;
+
+                        var loader =new THREE.OBJLoader (manager) ;
+                        loader.load ('/camera.obj', function (object) {
+                            //    object.traverse (function (child) {
+                            //        if ( child instanceof THREE.Mesh ) {
+                            //            child.material.map =texture ;
+                            //        }
+                            //    }) ;
+
+                                $.each (cameras, function (key, elt) {
+                                    object.position.set (elt.position.x, elt.position.y, elt.position.z) ;
+                                    object.rotation.set (elt.rotation.x, elt.rotation.y, elt.rotation.z) ;
+                                    //oViewer.impl.scene.add (object) ;
+                                    //ocamera =object ;
+                                }) ;
+                            },
+                            function (xhr) { if ( xhr.lengthComputable ) {} },
+                            function (xhr) {}
+                        ) ;
+	                }) ;
+
+	            },
+	            function (errorMsg) { // onErrorCallback
+	                alert("Load Error: " + errorMsg) ;
+	            }
+	        ) ;
+	    }
+	</script>
+
+    <!-- Socket -->
+    <script>
+	    var socket, bbb =false ;
+
+	    $(document).ready (function () {
+		    // Socket.io client
+		    socket =io () ;
+
+		    socket.on ('connect', function () {
+			    socket.emit ('bbbStatus', null) ;
+		    }) ;
+
+		    socket.on ('disconnect', function () {
+			    bbb =false ;
+			    //$('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+		    }) ;
+
+		    socket.on ('refresh', function (data) {
+		    }) ;
+
+		    socket.on ('bbbOn', function (data) {
+			    bbb =true ;
+			    //$('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+		    }) ;
+
+		    socket.on ('bbbOff', function (data) {
+			    bbb =false ;
+			    //$('button[id*=-shutter-]').prop ('disabled', !bbb) ;
+		    }) ;
+
+		    socket.on ('roomShutterCommand', function (data) {
+			    console.log ('roomShutterCommand') ;
+			    //lockUnlockButtons (data, true) ;
+		    }) ;
+
+		    socket.on ('roomCentral', function (data) {
+			    console.log ('roomCentral') ;
+			    //lockUnlockButtons (data, true) ;
+		    }) ;
+
+		    socket.on ('floorCentral', function (data) {
+			    console.log ('floorCentral') ;
+			    //lockFloorButtons (data, true) ;
+		    }) ;
+
+		    socket.on ('roomShutterCommandCompleted', function (data) {
+			    console.log ('roomShutterCommandCompleted') ;
+			    //lockUnlockButtons (data, false) ;
+		    }) ;
+
+		    socket.on ('roomCentralCompleted', function (data) {
+			    console.log ('roomCentralCompleted') ;
+			    //lockUnlockButtons (data, false) ;
+		    }) ;
+
+		    socket.on ('floorCentralCompleted', function (data) {
+			    console.log ('floorCentralCompleted') ;
+			    //lockFloorButtons (data, false) ;
+		    }) ;
+
+		    socket.on ('sensorData', function (data) {
+			    console.log ('sensorData: ' + data.sensorid + '(' + data.name + ')') ;
+			    if ( oViewer === undefined || oViewer == null )
+			        return ;
+			    var sensors =oViewer.toolController.getTool ('IoT').sensorPanels () ;
+			    if ( sensors [data.sensorid] !== undefined ) {
+				    $.each (data.payload, function (key, value) {
+					    if ( typeof sensorsMap [key] === 'string' )
+					        sensors [data.sensorid].updateFeeds (sensorsMap [key], value.toFixed (1)) ;
+					    else
+						    sensorsMap [key].map (function (kobj) { sensors [data.sensorid].updateFeeds (kobj, value.toFixed (1)) ; } ) ;
+				    }) ;
+			    }
+		    }) ;
+
+	    }) ;
+
+	    var sensorsMap ={
+		    'temperature': 'Temperature',
+		    'ambientTemperature': 'Temperature',
+		    'humidity': 'Humidity',
+		    'objectTemperature': [ 'Object Temp', 'Object Temp2' ],
+		    'lux': 'Luxometer',
+		    'pressure': 'Pressure',
+		    //'accelerometer': 'Accelerometer'
+
+	    } ;
+
+	    Object.byString =function (o, s) {
+		    s =s.replace (/\[(\w+)\]/g, '.$1') ; // convert indexes to properties
+		    s =s.replace (/^\./, '') ;           // strip a leading dot
+		    var a =s.split ('.') ;
+		    for ( var i =0, n =a.length ; i < n ; ++i ) {
+			    var k =a [i] ;
+			    if ( k in o )
+				    o =o [k] ;
+			    else
+				    return ;
+			}
+		    return (o) ;
+	    }
+
+    </script>

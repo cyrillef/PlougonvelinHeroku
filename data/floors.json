@@ -1,0 +1,28 @@
+{
+	"Maison": [
+		"Bureau",
+		"Cuisine",
+		"Salon",
+		"SdJ",
+		"Pauline",
+		"Lucille",
+		"Marie",
+		"Dressing",
+		"Garage"
+	],
+	"1er": [
+		"Pauline",
+		"Lucille",
+		"Marie",
+		"Dressing"
+	],
+	"Rdc": [
+		"Bureau",
+		"Cuisine",
+		"Salon",
+		"SdJ"
+	],
+	"S-sol": [
+		"Garage"
+	]
+}
