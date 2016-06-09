@@ -1,4 +1,4 @@
-# Public Heroku WEB site for private access to my House IoT
+# Public Heroku WEB site for private access to my House IoT Project
 
 [![Node.js](https://img.shields.io/badge/Node.js-5.11.1-blue.svg)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm-3.9.3-blue.svg)](https://www.npmjs.com/)
@@ -9,6 +9,9 @@
 
 <b>Note:</b> For using this sample, you need a valid oAuth credential for the translation / extraction portion.
 Visit this [page](https://developer.autodesk.com) for instructions to get on-board.
+
+<b>Note:</b> It also relies on the https://github.com/cyrillef/PlougonvelinNode Project which is the real brain 
+running on a BeagleBone Black device which controls the shutters, lights, and sensors.
 
 
 ## Live demo at
@@ -105,6 +108,7 @@ All these libraries can be install via bower
     "view-and-data-toolkit":  "*"
     ```
 
+	
 ## Setup/Usage Instructions
 
 The sample was created using Node.js and javascript.
@@ -125,8 +129,6 @@ b. CONSUMERKEY = &lt;your consumer key&gt;
 c. CONSUMERSECRET = &lt;your consumer secret&gt;
 
 Next restart the server.
-
-
 
 
 --------
